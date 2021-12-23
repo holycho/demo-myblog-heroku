@@ -1,0 +1,9 @@
+node_modules/
+public/assets/
+public/images/
+public/javascripts/
+*.log
+*.db
+*.sqlite
+.svn
+.vscode/
