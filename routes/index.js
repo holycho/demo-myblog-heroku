@@ -8,9 +8,11 @@ router.get('/', function (req, res, next) {
 });
 
 router.get('/api/blogs/:user_id', function (req, res, next) {
-    var sql = "SELECT * FROM blog WHERE user_id = ?"
-    var params = [req.params.user_id]
-    db.all(sql, params, (err, rows) => {
+    // var sql = "SELECT * FROM blog WHERE user_id = ?"
+    // var params = [req.params.user_id]
+    var sql = `SELECT * FROM blog WHERE user_id = '${req.params.user_id}';`;
+    // db.all(sql, params, (err, rows) => {
+    db.query(sql, (err, res) => {
         if (err) {
             res.status(400).json({
                 "error": err.message
@@ -19,7 +21,7 @@ router.get('/api/blogs/:user_id', function (req, res, next) {
         }
         res.json({
             "message": "success",
-            "data": rows
+            "data": res.rows
         });
     });
 });

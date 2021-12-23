@@ -1,7 +1,7 @@
 {
-  "name": "demo-blog",
+  "name": "demo-myblog-heroku",
   "version": "1.0.0",
-  "description": "",
+  "description": "Use heroku postgres for remote",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -38,6 +38,7 @@
     "lodash": "^4.17.21",
     "morgan": "^1.10.0",
     "path": "^0.12.7",
+    "pg": "^8.7.1",
     "prop-types": "^15.7.2",
     "pug": "^3.0.2",
     "react": "^17.0.2",

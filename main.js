@@ -66,7 +66,8 @@ app.post('/api/login', function (req, res, next) {
     let _users = [];
     let sql = `SELECT * FROM account`;
     let params = [];
-    db.all(sql, params, (error, rows) => {
+    // db.all(sql, params, (error, rows) => {
+    db.query(sql, (error, result) => {
         if (error) {
             res.status(500).json({
                 success: false,
@@ -76,7 +77,7 @@ app.post('/api/login', function (req, res, next) {
             return;
         }
 
-        rows.map((it, index) => {
+        result.rows.map((it, index) => {
             _users.push({
                 userId: it.acc_id,
                 account: it.username,
