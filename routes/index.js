@@ -1,56 +1,55 @@
-
 var express = require('express');
+var db = require('../db');
 var router = express.Router();
-var db = require("../database.js");
 
 router.get('/', function (req, res, next) {
     res.render('index', { title: `My Blog` });
 });
 
-router.get('/api/blogs/:user_id', function (req, res, next) {
-    // var sql = "SELECT * FROM blog WHERE user_id = ?"
-    // var params = [req.params.user_id]
-    var sql = `SELECT * FROM blog WHERE user_id = '${req.params.user_id}';`;
-    // db.all(sql, params, (err, rows) => {
-    db.query(sql, (err, res) => {
-        if (err) {
-            res.status(400).json({
-                "error": err.message
-            });
-            return;
-        }
+router.get('/api/blogs/:user_id', async (req, res, next) => {
+    var sql = `SELECT * FROM blog WHERE user_id = '${req.params.user_id}'`;
+    try {
+        const client = await db.connect();
+        const result = await client.query(sql);
         res.json({
             "message": "success",
-            "data": res.rows
+            "data": result.rows
         });
-    });
+        client.release();
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            "error": err.message
+        });
+    }
 });
 
-router.get('/api/blog/:id', function (req, res, next) {
-    var sql = "SELECT * FROM blog WHERE id = ?"
-    var params = [req.params.id]
-    db.get(sql, params, (err, row) => {
-        // console.log(err, row)
-        if (err) {
-            res.status(400).json({
-                "errer": err.message
-            });
-            return;
-        }
-        if (!row) {
+router.get('/api/blog/:id', async (req, res, next) => {
+    var sql = `SELECT * FROM blog WHERE id = '${req.params.id}'`;
+    try {
+        const client = await db.connect();
+        const result = await client.query(sql);
+        if (!result.rows) {
             res.status(400).json({
                 "errer": `Blog id: ${req.params.id} does not exist`
             });
             return;
         }
+
         res.json({
             "message": "success",
-            "data": row
+            "data": result.rows
         });
-    });
+        client.release();
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            "error": err.message
+        });
+    }
 });
 
-router.post('/api/blog', function (req, res, next) {
+router.post('/api/blog', async (req, res, next) => {
     let errors = [];
     // get fields from body
     if (!req.body.title) {
@@ -65,131 +64,126 @@ router.post('/api/blog', function (req, res, next) {
     if (errors.length > 0) {
         res.status(400).json({
             "error": errors.join(",")
-        })
+        });
         return;
     }
-    var sql = `INSERT INTO blog (title,content,created,updated,user_id) VALUES (?,?,datetime('now','localtime'),datetime('now','localtime'),?)`;
-    var params = [req.body.title, req.body.content, req.body.user_id];
-    db.run(sql, params, function (err, result) {
-        if (err) {
-            res.status(400).json({
-                "error": err.message
-            });
-            return;
-        }
+    var sql = `INSERT INTO blog (title,content,created,updated,user_id) VALUES ('${req.body.title}','${req.body.content}',now(),now(),'${req.body.user_id}') RETURNING id`;
+    try {
+        const client = await db.connect();
+        const result = await client.query(sql);
 
-        db.get(`SELECT * FROM blog WHERE id = ?`, [this.lastID], (err, data) => {
-            if (err) {
-                res.status(400).json({
-                    "error": err.message
-                });
-                return;
-            }
+        if (result.rows && result.rows.length > 0) {
+            let blogId = result.rows[0].id;
+            let qrySql = `SELECT * FROM blog WHERE id = '${blogId}'`;
 
-            // console.log('inserted data: ', data);
+            const qryResult = await db.query(qrySql);
             res.json({
                 "message": "success",
-                "data": {
-                    title: req.body.title,
-                    content: req.body.content,
-                    updated: data.updated,
-                    created: data.created,
-                    user_id: req.body.user_id
-                },
-                "id": this.lastID
+                "data": qryResult.rows[0],
+                "id": blogId
             });
-        })
-    })
+        }
+        client.release();
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            "error": err.message
+        });
+    }
 });
 
-router.patch('/api/blog/:id', function (req, res, next) {
-    var sql = `UPDATE blog SET title=COALESCE(?,title),content=COALESCE(?,content),updated=datetime('now','localtime') WHERE id=?`;
-    var params = [req.body.title, req.body.content, req.params.id];
-    db.run(sql, params, function (err, result) {
-        if (err) {
-            res.status(400).json({
-                "error": err.message
-            });
-            return;
-        }
+router.patch('/api/blog/:id', async (req, res, next) => {
+    var sql = `UPDATE blog SET title=COALESCE('${req.body.title}',title),content=COALESCE('${req.body.content}',content),updated=now() WHERE id='${req.params.id}'`;
+    try {
+        const client = await db.connect();
+        const result = await client.query(sql);
 
-        db.get(`SELECT * FROM blog WHERE id = ?`, [req.params.id], (err, data) => {
-            if (err) {
+        let qrySql = `SELECT * FROM blog WHERE id = '${req.params.id}'`;
+
+        const qryResult = await db.query(qrySql);
+        res.json({
+            "message": "success",
+            "data": qryResult.rows[0],
+            "id": req.params.id
+        });
+        client.release();
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            "error": err.message
+        });
+    }
+});
+
+router.delete('/api/blog/:id', async (req, res, next) => {
+    var countSql = `SELECT COUNT(*) FROM blog WHERE id = '${req.params.id}'`;
+    try {
+        const client = await db.connect();
+        const countResult = await client.query(countSql);
+
+        if (countResult.rows && countResult.rows.length > 0) {
+            let count = +countResult.rows[0].count;
+
+            if (count === 0) {
                 res.status(400).json({
-                    "error": err.message
+                    "errer": `Blog id: ${req.params.id} does not exist`
                 });
                 return;
             }
 
-            // console.log('updated data: ', data);
-            res.json({
-                "message": "success",
-                "data": {
-                    title: data.title,
-                    content: data.content,
-                    updated: data.updated,
-                    created: data.created
-                },
-                "id": data.id
-            });
-        })
-    })
-});
-
-router.delete('/api/blog/:id', function (req, res, next) {
-    var countSql = `SELECT COUNT(*) as total FROM blog WHERE id=?`;
-    // get(): 取得執行結果
-    db.get(countSql, req.params.id, function (err, result) {
-        if (err) {
-            res.status(400).json({
-                "error": err.message
-            });
-            return;
-        }
-        // console.log(result)
-        if (result.total === 0) {
-            res.status(400).json({
-                "errer": `Blog id: ${req.params.id} does not exist`
-            });
-            return;
-        }
-
-        var sql = 'DELETE FROM blog WHERE id=?';
-        // run(): 執行 sql 語法指令
-        db.run(sql, req.params.id, function (err, result) {
-            if (err) {
-                res.status(400).json({
-                    "error": err.message
-                });
-                return;
-            }
+            var sql = `DELETE FROM blog WHERE id = '${req.params.id}'`;
+            const result = await client.query(sql);
             res.json({
                 "message": "success",
                 "changes": `blog id: ${req.params.id} is deleted`,
                 "id": req.params.id
             });
-        })
-    })
-});
-
-router.get('/api/account', function (req, res, next) {
-    var sql = `SELECT * FROM account`;
-    var params = [];
-    db.all(sql, params, (error, rows) => {
-        if (error) {
-            res.status(500).json({
-                "error": error.message
-            });
-            return;
         }
+        client.release();
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            "error": err.message
+        });
+    }
+
+    var sql = `DELETE FROM blog WHERE id = '${req.params.id}'`;
+    try {
+        const client = await db.connect();
+        const result = await client.query(sql);
         res.json({
             "message": "success",
-            "data": rows
+            "changes": `blog id: ${req.params.id} is deleted`,
+            "id": req.params.id
         });
-    });
+        client.release();
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            "error": err.message
+        });
+    }
 })
 
-router.post('/api/account', function (req, res, next) {
+router.get('/api/account', async (req, res, next) => {
+    var sql = `SELECT * FROM account`;
+    try {
+        const client = await db.connect();
+        const result = await client.query(sql);
+        res.json({
+            "message": "success",
+            "data": result.rows
+        });
+        client.release();
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            "error": err.message
+        });
+    }
+});
+
+router.post('/api/account', async (req, res, next) => {
     let errors = [];
     // get fields from body
     if (!req.body.username) {
@@ -213,58 +207,66 @@ router.post('/api/account', function (req, res, next) {
         return;
     }
 
-    var countSql = `SELECT COUNT(*) as total FROM account WHERE username=?`;
-    db.get(countSql, req.body.username, function (err, result) {
-        if (err) {
-            res.status(400).json({
-                error: err.message,
-                errcode: "QUERY_ACCOUNT_FAIL"
-            });
-            return;
-        }
-        // console.log(`${req.body.username}\'s total count: `, result.total);
-        if (result.total > 0) {
-            res.status(400).json({
-                error: `account: \'${req.body.username}\' already exists`,
-                errcode: "DUPLICATE_ACCOUNT"
-            });
-            return;
-        }
+    var countSql = `SELECT COUNT(*) FROM account WHERE username='${req.body.username}'`;
+    try {
+        const client = await db.connect();
+        const countResult = await client.query(countSql);
 
-        // Insert
-        var sql = `INSERT INTO account (username,password,created_time,updated_time) VALUES (?,?,datetime('now','localtime'),datetime('now','localtime'))`;
-        var params = [req.body.username, req.body.password];
-        db.run(sql, params, function (err, result) {
-            if (err) {
+        if (countResult.rows && countResult.rows.length > 0) {
+            let count = +countResult.rows[0].count;
+            if (count > 0) {
                 res.status(400).json({
-                    error: err.message,
-                    errcode: "INSERT_ACCOUNT_FAIL"
+                    error: `account: \'${req.body.username}\' already exists`,
+                    errcode: "DUPLICATE_ACCOUNT"
                 });
                 return;
             }
 
-            db.get(`SELECT * FROM account WHERE acc_id = ?`, [this.lastID], (err, data) => {
-                if (err) {
-                    res.status(400).json({
-                        error: err.message,
-                        errcode: "INSERT_ACCOUNT_FAIL"
-                    });
-                    return;
-                }
+            var sql = `INSERT INTO account (username,password,created_time,updated_time) VALUES ('${req.body.username}','${req.body.password}',now(),now()) RETURNING acc_id`;
+            
+            const result = await client.query(sql);
+            if (result.rows && result.rows.length > 0) {
+                let accId = result.rows[0].acc_id;
+                var qrySql = `SELECT * FROM account WHERE acc_id = ${accId}`;
 
-                console.log('inserted data: ', data);
+                let qryResult = await client.query(qrySql);
                 res.json({
                     "message": "success",
                     "data": {
-                        username: req.body.username,
-                        updated: data.updated,
-                        created: data.created
+                        username: qryResult.rows[0].username,
+                        updated: qryResult.rows[0].updated_time,
+                        created: qryResult.rows[0].created_time
                     },
-                    "acc_id": this.lastID
+                    "acc_id": accId
                 });
-            })
-        })
-    });
+            }
+        }
+        client.release();
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            "error": err.message
+        });
+    }
 });
 
-module.exports = router;
+router.delete('/api/account/:id', async (req, res, next) => {
+    var sql = `DELETE FROM account WHERE acc_id = '${req.params.id}'`;
+    try {
+        const client = await db.connect();
+        const result = await client.query(sql);
+        res.json({
+            "message": "success",
+            "changes": `account id: ${req.params.id} is deleted`,
+            "id": req.params.id
+        });
+        client.release();
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            "error": err.message
+        });
+    }
+})
+
+module.exports = router

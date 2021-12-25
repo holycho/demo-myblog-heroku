@@ -39,7 +39,7 @@ const BlogList = props => {
             }
             let curItem = (<div className={itemStyle} onClick={e => { handleBlogClick(cur, index); }}>
                 <div className={cx("blog-title", { 'selected': isSelected })} title={cur.title}>{cur.title}</div>
-                <div className={cx("create-time", { 'selected': isSelected })}>{`於 ${cur.created} 建立`}</div>
+                <div className={cx("create-time", { 'selected': isSelected })}>{`於 ${new Date(cur.created).toLocaleString()} 建立`}</div>
             </div>);
             return [...acc, curItem];
         }, []);

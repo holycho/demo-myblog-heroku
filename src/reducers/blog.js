@@ -61,7 +61,7 @@ const blogReducer = (state = initialState, action) => {
                 content: action.content,
                 updated: action.updated,
                 created: action.created
-            })
+            });
 
             return Object.assign({}, state, {
                 ...state,
@@ -69,20 +69,20 @@ const blogReducer = (state = initialState, action) => {
                 selected: action.id
             });
         case 'BLOG_UPDATE':
-            console.log('hl reducer update: ', action)
+            console.log('hl reducer update: ', action);
             let upList = state.list.map((it, index) => {
-                if (it.id === action.id) {
+                if (`${it.id}` === `${action.id}`) {
                     return {
                         id: it.id,
                         title: action.title,
                         content: action.content,
                         updated: action.updated,
                         created: action.created
-                    }
+                    };
                 }
 
                 return it;
-            })
+            });
             return Object.assign({}, state, {
                 ...state,
                 status: action.status,

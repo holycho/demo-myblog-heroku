@@ -1,15 +1,25 @@
-var main = require('./main');
-var debug = require('debug')('demo-resume:server');
+var app = require('./main');
+var debug = require('debug')('demo-server:server');
 var http = require('http');
 
+/**
+ * Get port from environment and store in Express.
+ */
+
 var port = normalizePort(process.env.PORT || '3000');
-main.set('port', port);
+app.set('port', port);
 
-const server = http.createServer(main);
+/**
+ * Create HTTP server.
+ */
 
-server.listen(port, function(){
-    console.log('Express server listening on port ' + port);
-});
+var server = http.createServer(app);
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 
@@ -17,23 +27,23 @@ server.on('listening', onListening);
  * Normalize a port into a number, string, or false.
  */
 
- function normalizePort(val) {
-    var port = parseInt(val, 10);
-  
-    if (isNaN(port)) {
-      // named pipe
-      return val;
-    }
-  
-    if (port >= 0) {
-      // port number
-      return port;
-    }
-  
-    return false;
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
   }
 
-  /**
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
  * Event listener for HTTP server "error" event.
  */
 

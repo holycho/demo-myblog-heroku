@@ -247,7 +247,7 @@ const BlogView = props => {
         }, []);
 
         return (<div className="article-content">
-            <div className="article-time">{`最後更新時間: ${selectedBlog.updated ? selectedBlog.updated : selectedBlog.created}`}</div>
+            <div className="article-time">{`最後更新時間: ${selectedBlog.updated ? new Date(selectedBlog.updated).toLocaleString() : new Date(selectedBlog.created).toLocaleString()}`}</div>
             {article}
         </div>);
     }

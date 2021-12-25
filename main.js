@@ -3,9 +3,9 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-
 var jwt = require('jsonwebtoken');
-var db = require('./database');
+var db = require('./db');
+
 var indexRouter = require('./routes/index');
 
 var app = express();
@@ -16,8 +16,8 @@ app.set('view engine', 'pug');
 app.set('secret', 'mySecret');
 
 app.use(logger('dev'));
-app.use(express.json()); // body-parser 於 Express 4 改為內建選項
-app.use(express.urlencoded({ extended: false })); // body-parser 於 Express 4 改為內建選項
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -65,8 +65,6 @@ app.post('/api/login', function (req, res, next) {
 
     let _users = [];
     let sql = `SELECT * FROM account`;
-    let params = [];
-    // db.all(sql, params, (error, rows) => {
     db.query(sql, (error, result) => {
         if (error) {
             res.status(500).json({
