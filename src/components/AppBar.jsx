@@ -7,7 +7,7 @@ const MemoAppBar = React.memo(function AppBar(props) {
     // console.log('--- render AppBar ---');
 
     return (<div className="app-bar">
-        <div className="app-title">{`Welcome to ${account}'s blog`}</div>
+        <div className="app-title">{`歡迎來到 ${account} 部落格`}</div>
         <div className="app-account">
             <div className="app-icon">
                 <AccountCircleRoundedIcon style={{ fontSize: '26px' }} />

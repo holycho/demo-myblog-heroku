@@ -20,7 +20,7 @@ const blogReducer = (state = initialState, action) => {
             return Object.assign({}, state, {
                 ...state,
                 status: action.status,
-                list: action.list,
+                list: action.list.sort((a, b) => (+a.id) - (+b.id)),
                 selected: _selected
             });
         case 'BLOG_GET':

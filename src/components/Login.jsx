@@ -19,7 +19,8 @@ const ERROR_LOGIN = {
     "DUPLICATE_ACCOUNT": "帳號名稱已存在, 請更換申請帳號",
     "NO_INPUT": "請輸入帳號與密碼",
     "USER_NOT_FOUND": "此帳號尚未建立, 請建立新帳號",
-    "WRONG_PASSWORD": "密碼錯誤"
+    "WRONG_PASSWORD": "密碼錯誤",
+    "EXCEED_ACCOUNT_NUMBER": "已超過帳號的數量上限"
 }
 
 class Login extends Component {
@@ -222,6 +223,7 @@ class Login extends Component {
                     <input value={account} onChange={e => { this.handleInputChange('account', e) }} />
                     <div className="row">密碼</div>
                     <input type="password" value={password} onKeyPress={this.handleKeyPress} onChange={e => { this.handleInputChange('password', e) }} />
+                    <div className="tip">預設帳密為 admin/admin, 若無法新增帳號, 請聯繫開發者</div>
                     {loginError ? <div className="error">{error}</div> : null}
                     {showInfo ? <div className="info">{info}</div> : null}
                 </div>

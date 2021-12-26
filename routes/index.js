@@ -1,6 +1,8 @@
 var express = require('express');
 var db = require('../db');
 var router = express.Router();
+const ACCOUNT_NUMBER = 11;
+const BLOG_NUMBER = 20;
 
 router.get('/', function (req, res, next) {
     res.render('index', { title: `My Blog` });
@@ -67,6 +69,28 @@ router.post('/api/blog', async (req, res, next) => {
         });
         return;
     }
+
+    var countAllSql = `SELECT COUNT(*) FROM blog WHERE user_id = '${req.body.user_id}'`;
+    try {
+        const countAllResult = await db.query(countAllSql);
+        if (countAllResult.rows && countAllResult.rows.length > 0) {
+            let _count = +countAllResult.rows[0].count;
+            if (_count > BLOG_NUMBER) {
+                res.status(500).json({
+                    error: `Exceed the number of blogs for this account`,
+                    errcode: "EXCEED_BLOG_NUMBER"
+                });
+                return;
+            }
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            "error": err.message
+        });
+        return;
+    }
+
     var sql = `INSERT INTO blog (title,content,created,updated,user_id) VALUES ('${req.body.title}','${req.body.content}',now(),now(),'${req.body.user_id}') RETURNING id`;
     try {
         const client = await db.connect();
@@ -207,6 +231,27 @@ router.post('/api/account', async (req, res, next) => {
         return;
     }
 
+    var countAllSql = `SELECT COUNT(*) FROM account`;
+    try {
+        const countAllResult = await db.query(countAllSql);
+        if (countAllResult.rows && countAllResult.rows.length > 0) {
+            let _count = +countAllResult.rows[0].count;
+            if (_count > ACCOUNT_NUMBER) {
+                res.status(500).json({
+                    error: `Exceed the number of accounts`,
+                    errcode: "EXCEED_ACCOUNT_NUMBER"
+                });
+                return;
+            }
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            "error": err.message
+        });
+        return;
+    }
+    
     var countSql = `SELECT COUNT(*) FROM account WHERE username='${req.body.username}'`;
     try {
         const client = await db.connect();

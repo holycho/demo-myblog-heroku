@@ -1,7 +1,8 @@
 // 配色組合: #1B8EF2, #1BA0F2, #38BDF2, #38D0F2, #F2A516
-@color-primary: #1BA0F2;
-@color_error  : red;
-@color_info   : blue;
+@color-primary   : #1BA0F2;
+@color-background: #38D0F2;
+@color_error     : red;
+@color_info      : blue;
 
 #login {
     display        : flex;
@@ -14,12 +15,12 @@
     width          : 100%;
 
     .form {
-        display       : flex;
-        border        : 1px solid @color-primary;
-        width         : 300px;
-        height        : 300px;
-        flex-direction: column;
-        box-sizing    : border-box;
+        display          : flex;
+        border           : 1px solid @color-primary;
+        width            : 300px;
+        // height        : 300px;
+        flex-direction   : column;
+        box-sizing       : border-box;
     }
 
     .title {
@@ -32,7 +33,7 @@
     }
 
     .panel {
-        height       : calc(100% - 90px);
+        // height       : calc(100% - 90px);
         padding      : 20px 30px;
         border-bottom: 1px solid @color-primary;
         box-sizing   : border-box;
@@ -42,6 +43,18 @@
     .row {
         height     : 25px;
         line-height: 25px;
+    }
+
+    .tip {
+        width           : 100%;
+        color           : white;
+        background-color: @color-primary;
+        border-radius   : 5px;
+        box-sizing      : border-box;
+        letter-spacing  : 1px;
+        padding         : 6px;
+        opacity         : .8;
+        margin          : 4px 0px;
     }
 
     .footer {
@@ -68,17 +81,17 @@
     }
 
     .button {
-        display        : flex;
-        justify-content: center; // flex: 主軸 置中
-        align-items    : center; // flex: 交叉軸 置中
-        width          : 100px;
-        height         : 30px;
+        display           : flex;
+        justify-content   : center; // flex: 主軸 置中
+        align-items       : center; // flex: 交叉軸 置中
+        width             : 100px;
+        height            : 30px;
         // text-align     : center; // 水平置中
         // line-height    : 30px;   // 垂直置中
-        background     : @color-primary;
-        border-radius  : 5px;
-        margin         : 5px 3px;
-        color          : white;
+        background        : @color-primary;
+        border-radius     : 5px;
+        margin            : 5px 3px;
+        color             : white;
 
         &:hover {
             cursor : pointer;
